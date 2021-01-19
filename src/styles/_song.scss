@@ -1,13 +1,13 @@
 .song-container {
   min-height: 60vh;
+  background: lightblue;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   img {
-    width: 25%;
+    width: 20%;
     border-radius: 50%;
-    transition: all 2s ease;
   }
   h2 {
     padding: 3rem 1rem 1rem 1rem;
@@ -15,25 +15,4 @@
   h3 {
     font-size: 1rem;
   }
-}
-
-@media screen and (max-width: 768px) {
-  .song-container {
-    img {
-      width: 60%;
-    }
-  }
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.rotateSong {
-  animation: rotate 20s linear forwards infinite;
 }
