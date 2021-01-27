@@ -1,23 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faAngleLeft, faAngleRight, faPause } from '@fortawesome/free-solid-svg-icons';
-import { useEffect } from 'react';
+import { faPlay, faAngleLeft, faAngleRight, faPause, faVolumeDown } from '@fortawesome/free-solid-svg-icons';
+
 import { playAudio } from '../utils';
 
-function Player({
-  audioRef,
-  isPlaying,
-  setIsPlaying,
-  songInfo,
-  setSongInfo,
-  currentSong,
-  songs,
-  setSongs,
-  setCurrentSong,
-}) {
-  useEffect(() => {
+const Player = ({ isPlaying, setIsPlaying, audioRef, songInfo, setSongInfo, currentSong, songs, setCurrentSong, setSongs }) => {
+  const [activeVolume, setActiveVolume] = useState(false);
+  //UseEffect Update List
+  const activeLibraryHandler = (nextPrev) => {
     const newSongs = songs.map((song) => {
-      if (song.id === currentSong.id) {
+      if (song.id === nextPrev.id) {
         return {
           ...song,
           active: true,
@@ -29,10 +21,24 @@ function Player({
         };
       }
     });
-    setSongs(newSongs);
-  }, [currentSong]);
 
-  const playSongHeader = () => {
+    setSongs(newSongs);
+  };
+
+  const trackAnim = {
+    transition: 'all 3s ease',
+    transform: `translateX(${songInfo.animationPercentage}%)`,
+  };
+  //Event Handlers
+  function getTime(time) {
+    return Math.floor(time / 60) + ':' + ('0' + Math.floor(time % 60)).slice(-2);
+  }
+  const dragHandler = (e) => {
+    audioRef.current.currentTime = e.target.value;
+    setSongInfo({ ...songInfo, currentTime: e.target.value });
+  };
+
+  const playSongHandler = () => {
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(!isPlaying);
@@ -41,75 +47,56 @@ function Player({
       setIsPlaying(!isPlaying);
     }
   };
-
-  const skipTrackHandler = (direction) => {
+  const skipTrackHandler = async (direction) => {
     let currentIndex = songs.findIndex((song) => song.id === currentSong.id);
 
+    //Forward BAck
     if (direction === 'skip-forward') {
-      setCurrentSong(songs[(currentIndex + 1) % songs.length]);
+      await setCurrentSong(songs[(currentIndex + 1) % songs.length]);
+      activeLibraryHandler(songs[(currentIndex + 1) % songs.length]);
     }
     if (direction === 'skip-back') {
       if ((currentIndex - 1) % songs.length === -1) {
-        setCurrentSong(songs[songs.length - 1]);
+        await setCurrentSong(songs[songs.length - 1]);
+        activeLibraryHandler(songs[songs.length - 1]);
         playAudio(isPlaying, audioRef);
         return;
       }
-      setCurrentSong(songs[(currentIndex - 1) % songs.length]);
+      await setCurrentSong(songs[(currentIndex - 1) % songs.length]);
+      activeLibraryHandler(songs[(currentIndex - 1) % songs.length]);
     }
-    playAudio(isPlaying, audioRef);
+    if (isPlaying) audioRef.current.play();
   };
-
-  function getTime(time) {
-    return Math.floor(time / 60) + ':' + ('0' + Math.floor(time % 60)).slice(-2);
-  }
-
-  const dragHandler = (e) => {
-    audioRef.current.currentTime = e.target.value;
-    setSongInfo({ ...songInfo, currentTime: e.target.value });
+  const changeVolume = (e) => {
+    let value = e.target.value;
+    audioRef.current.volume = value;
+    setSongInfo({ ...songInfo, volume: value });
   };
 
   return (
     <div className="player">
       <div className="time-control">
         <p>{getTime(songInfo.currentTime)}</p>
-        <input
-          type="range"
-          value={songInfo.currentTime}
-          max={songInfo.duration || 0}
-          min={0}
-          onChange={dragHandler}
+        <div
           style={{
-            background: `linear-gradient(to right,${currentSong.color[0]},${currentSong.color[1]} )`,
+            background: `linear-gradient(to right, ${currentSong.color[0]},${currentSong.color[1]})`,
           }}
-        />
+          className="track"
+        >
+          <input value={songInfo.currentTime} type="range" max={songInfo.duration || 0} min={0} onChange={dragHandler} />
+          <div style={trackAnim} className="animate-track"></div>
+        </div>
         <p>{songInfo.duration ? getTime(songInfo.duration) : '0:00'}</p>
-        <p>{getTime(songInfo.duration)}</p>
       </div>
       <div className="play-control">
-        <FontAwesomeIcon
-          onClick={() => skipTrackHandler('skip-back')}
-          className="skip-button"
-          size="2x"
-          icon={faAngleLeft}
-          color="white"
-        />
-        <FontAwesomeIcon
-          onClick={playSongHeader}
-          className="play"
-          size="2x"
-          color="white"
-          icon={isPlaying ? faPause : faPlay}
-        />
-        <FontAwesomeIcon
-          className="skip-forward"
-          size="2x"
-          icon={faAngleRight}
-          color="white"
-          onClick={() => skipTrackHandler('skip-forward')}
-        />
+        <FontAwesomeIcon color="white" onClick={() => skipTrackHandler('skip-back')} className="skip-back" size="2x" icon={faAngleLeft} />
+        <FontAwesomeIcon color="white" onClick={playSongHandler} className="play" size="2x" icon={isPlaying ? faPause : faPlay} />
+        <FontAwesomeIcon color="white" className="skip-forward" size="2x" icon={faAngleRight} onClick={() => skipTrackHandler('skip-forward')} />
+        <FontAwesomeIcon color="white" onClick={() => setActiveVolume(!activeVolume)} icon={faVolumeDown} />
+        {activeVolume && <input onChange={changeVolume} value={songInfo.volume} max="1" min="0" step="0.01" type="range" />}
       </div>
     </div>
   );
-}
+};
 
 export default Player;
