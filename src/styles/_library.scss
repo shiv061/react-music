@@ -7,6 +7,9 @@
   width: 20rem;
   height: 100%;
   overflow: scroll;
+  transform: translateX(-100%);
+  transition: all 0.5s ease;
+  opacity: 0;
   h2 {
     padding: 2rem;
   }
@@ -18,11 +21,12 @@
   align-items: center;
   padding: 1rem 2rem 1rem 2rem;
   cursor: pointer;
-  transition: all 0.5s ease-out;
+  transition: all 0.75s ease-out;
   img {
     width: 30%;
   }
   &:hover {
+    background: rgb(183, 183, 183);
     filter: brightness(1.2);
     img {
       transform: scale(1.1);
@@ -37,5 +41,26 @@
   }
   h4 {
     font-size: 0.7rem;
+  }
+}
+
+.selected {
+  background: rgb(177, 195, 255);
+}
+
+.active-library {
+  transform: translate(0%);
+  opacity: 1;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.7);
+  border-radius: 20px;
+  border: transparent;
+}
+
+@media screen and (max-width: 768px) {
+  .library {
+    width: 100%;
   }
 }
